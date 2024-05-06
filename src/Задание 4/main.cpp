@@ -12,10 +12,12 @@ bool isPrime(int n);
 long long rn(int p);
 long long gcd(long long a, long long b);
 
-long long power_mod(long long a, long long b, long long n);
+long long f(long long x, long long y, long long n, long long r);
+long long powMod(long long x, long long y, long long n);
+
+
 long long extendedEuclidean(long long a, long long b, long long& x, long long& y);
 long long findModularInverse(long long a, long long m);
-
 
 string caesar_cipher(const string& message, long long k);
 string caesar_decipher(const string& message, long long k_prime);
@@ -42,28 +44,28 @@ int main() {
 
     cout << "Абонент А выбирает случайное большое целое число х: " << x << endl;
 
-    long long k = power_mod(a, x, p);
+    long long k = powMod(a, x, p);
     cout << "Абонент А генерирует закрытый ключ k: " << k << endl;
 
-    string encrypted = caesar_cipher(message, k % 26);
+    string encrypted = caesar_cipher(message, k);
     cout << "Абонент А зашифровывает сообщение: " << encrypted << endl;
     cout << "Абонент B выбирает случайное большое целое число у (взаимно простое с p - 1): " << y << endl;
 
-    long long Y = power_mod(a, y, p);
+    long long Y = powMod(a, y, p);
     cout << "Абонент B посылает абоненту А: " << Y << endl;
 
-    long long X = power_mod(Y, x, p);
+    long long X = powMod(Y, x, p);
     cout << "Абонент А посылает абоненту B: " << X << endl;
 
     long long z = findModularInverse(y, p - 1);
     cout << "Абонент B вычисляет z: " << z << endl;
 
-    long long k_prime = power_mod(X, z, p);
+    long long k_prime = powMod(X, z, p);
     cout << "Абонент B вычисляет k': " << k_prime << endl;
 
     if (k == k_prime) {
         cout << "закрытый ключ k = k'" << endl;
-        string decrypted = caesar_decipher(encrypted, k_prime % 26);
+        string decrypted = caesar_decipher(encrypted, k_prime);
         cout << "Расшифрованное сообщение: " << decrypted << endl;
     }
 
@@ -130,15 +132,14 @@ long long gcd(long long a, long long b) {
     return gcd(b, a % b);
 }
 
-long long power_mod(long long a, long long b, long long n) {
-    long long result = 1;
-    while (b > 0) {
-        if (b % 2 == 1)
-            result = (result * a) % n;
-        a = (a * a) % n;
-        b /= 2;
-    }
-    return result;
+long long f(long long x, long long y, long long n, long long r) {
+    if (y == 0) return r;
+    if (y & 0x01) return f((x * x) % n, y >> 1, n, (r * x) % n);
+    return f((x * x) % n, y >> 1, n, r);
+}
+
+long long powMod(long long x, long long y, long long n) {
+    return f(x, y, n, 1);
 }
 
 // Расширенный алгоритм Евклида
@@ -170,21 +171,20 @@ long long findModularInverse(long long a, long long m) {
 
 string caesar_cipher(const string& message, long long k) {
     string result = "";
-    for (char ch : message) {
-        if (isalpha(ch)) {
-            char base = isupper(ch) ? 'A' : 'a';
-            // Исправление для корректной обработки отрицательных сдвигов
-            result += char(((ch - base + k + 26) % 26) + base);
-        }
-        else {
-            // Сохраняем не-буквенные символы без изменений
-            result += ch;
-        }
+
+    for (char c : message) {
+        result += char((c + k) % 256);
     }
+
     return result;
 }
 
 string caesar_decipher(const string& message, long long k_prime) {
-    // Используем ту же функцию шифрования с отрицательным ключом для дешифрования
-    return caesar_cipher(message, -k_prime);
+    string result = "";
+
+    for (char c : message) {
+        result += char((c - k_prime + 256) % 256);
+    }
+
+    return result;
 }
