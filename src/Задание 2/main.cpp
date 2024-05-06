@@ -37,7 +37,9 @@ pair<int, int> findModularInverse(int a, int m) {
 int main() {
     setlocale(LC_ALL, "ru");
 
-    int a = 11, b = 16;
+    int a, b;
+    cin >> a >> b;
+    
     pair<int, int> res = findModularInverse(a, b);
 
     if (res.first == 1) {
